@@ -112,38 +112,23 @@ class JPatcher {
 	public function add($udiff) {
 		// (1) Separate the input into lines
 		$lines = $this->splitLines($udiff);
-		if (!isset($lines)) {
-			throw new Exception(JText::_('JLIB_FILESYSTEM_PATCHER_INVALID_INPUT'));
-		}
 		unset($udiff);
 	
 		$line = current($lines);
 		do {
-			if (strlen($line)<5) {
-				continue;
-			}
 			// start recognition when a new diff block is found
-			if (substr($line, 0, 4)!='--- ') {
+			if (!preg_match('/^---\\s+(\\S+)\s+\\d{1,4}-\\d{1,2}-\\d{1,2}\\s+\\d{1,2}:\\d{1,2}:\\d{1,2}(\\.\\d+)?\\s+(\+|-)\\d{4}/A', $line, $m)) {
 				continue;
 			}
-			$p = strpos($line, "\t", 4);
-			if ($p===false)	{
-				$p = strlen($line);
-			}
-			$src = $this->root.substr($line, 4, $p-4);
+			$src = $this->root.$m[1];
 			$line = next($lines);
 			if (!isset($line)) {
 				throw new Exception(JText::_('JLIB_FILESYSTEM_PATCHER_UNEXPECTED_EOF'));
 			}
-			if (substr($line, 0, 4)!='+++ ') {
+			if (!preg_match('/^\\+\\+\\+\\s+(\\S+)\s+\\d{1,4}-\\d{1,2}-\\d{1,2}\\s+\\d{1,2}:\\d{1,2}:\\d{1,2}(\\.\\d+)?\\s+(\+|-)\\d{4}/A', $line, $m)) {
 				throw new Exception(JText::_('JLIB_FILESYSTEM_PATCHER_INVALID_DIFF'));
 			}
-			$p = strpos($line, "\t", 4);
-			if ($p===false)	{
-				$p = strlen($line);
-			}
-			$dst = $this->root.substr($line, 4, $p-4);
-			
+			$dst = $this->root.$m[1];
 			$line = next($lines);
 			if (!isset($line)) {
 				throw new Exception(JText::_('JLIB_FILESYSTEM_PATCHER_UNEXPECTED_EOF'));
@@ -164,9 +149,7 @@ class JPatcher {
 				else {
 					$dst_size = (int)$m[6];
 				}
-				if (!$this->apply($lines, $src, $dst, (int)$m[1], $src_size, (int)$m[4], $dst_size)) {
-					return false;
-				}
+				$this->apply($lines, $src, $dst, (int)$m[1], $src_size, (int)$m[4], $dst_size);
 				$done++;
 				$line = next($lines);
 				if ($line === FALSE) {
@@ -195,6 +178,8 @@ class JPatcher {
 	
 	/**
 	 * Apply the patch
+	 *
+	 * @return integer the number of files patched
 	 */	
 	public function patch()
 	{
@@ -204,8 +189,8 @@ class JPatcher {
 		// patch each destination file
 		foreach($this->destinations as $file => $content) {
 			if (JFile::write($file, implode($this->newline, $content))) {
-				if (isset($this->source[$file])) {
-					$this->source[$file] = $content;
+				if (isset($this->sources[$file])) {
+					$this->sources[$file] = $content;
 				}
 				$done++;
 			}
@@ -244,21 +229,21 @@ class JPatcher {
 		$src_left = $src_size;
 		$dst_left = $dst_size;
 		do {
-			if (!isset($line{0})) {
+			if (!isset($line[0])) {
 				$source[] = '';
 				$destin[] = '';
 				$src_left--;
 				$dst_left--;
 				continue;
 			}
-			if ($line{0}=='-') {
+			if ($line[0]=='-') {
 				if ($src_left==0) {
 					throw new Exception(JText::sprintf('JLIB_FILESYSTEM_PATCHER_REMOVE_LINE', key($lines)));
 				}
 				$source[] = substr($line, 1);
 				$src_left--;
 			}
-			elseif ($line{0}=='+') {
+			elseif ($line[0]=='+') {
 				if ($dst_left==0) {
 					throw new Exception(JText::sprintf('JLIB_FILESYSTEM_PATCHER_ADD_LINE', key($lines)));
 				}
@@ -266,10 +251,10 @@ class JPatcher {
 				$dst_left--;
 			}
 			else {
-				if (!isset($line{1})) {
+				if (!isset($line[1])) {
 					$line = '';
 				}
-				elseif ($line{0}=='\\') {
+				elseif ($line[0]=='\\') {
 					if ($line=='\\ No newline at end of file') {
 						continue;
 					}
@@ -288,15 +273,12 @@ class JPatcher {
 				if ($src_size>0) {
 					$src_lines =& $this->getSource($src);
 					if (!isset($src_lines)) {
-echo 'ici';						return false;
+						throw new Exception(JText::sprintf('JLIB_FILESYSTEM_PATCHER_UNEXISING_SOURCE', $src));
 					}
 				}
 				if ($dst_size>0) {
 					if ($src_size>0) {
 						$dst_lines =& $this->getDestination($dst, $src);
-						if (!isset($dst_lines)) {
-							return false;
-						}
 						$src_bottom=$src_line+count($source);
 						$dst_bottom=$dst_line+count($destin);
 						
@@ -314,8 +296,7 @@ echo 'ici';						return false;
 				else {
 					$this->removals[] = $src;
 				}
-				
-				return true;
+				return;
 			}
 		} while (false !== ($line = next($lines)));
 		throw new Exception(JText::_('JLIB_FILESYSTEM_PATCHER_UNEXPECTED_EOF'));
