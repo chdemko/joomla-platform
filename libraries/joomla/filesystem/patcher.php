@@ -13,14 +13,32 @@
 defined('JPATH_PLATFORM') or die;
 
 jimport('joomla.filesystem.file');
+jimport('joomla.factory');
 jimport('joomla.methods');
 
-define('_PHPP_INVALID_INPUT', 'Invalid input');
-define('_PHPP_UNEXPECTED_EOF', 'Unexpected end of file');
-define('_PHPP_UNEXPECTED_ADD_LINE', 'Unexpected add line at line %d');
-define('_PHPP_UNEXPECTED_REMOVE_LINE', 'Unexpected remove line at line %d');
-define('_PHPP_INVALID_DIFF', 'Invalid unified diff block');
-define('_PHPP_FAILED_VERIFY', 'Failed source verification of file %s at line %d');
+// Loading the language file
+JFactory::getLanguage()->load(
+	'lib_joomla_filesystem_patcher',
+	JPATH_PLATFORM . '/joomla/filesystem/meta',
+	null,
+	false,
+	false
+) ||
+JFactory::getLanguage()->load(
+	'lib_joomla_filesystem_patcher',
+	JPATH_BASE,
+	null,
+	false,
+	false
+) ||
+JFactory::getLanguage()->load(
+	'lib_joomla_filesystem_patcher',
+	JPATH_PLATFORM . '/joomla/filesystem/meta'
+) ||
+JFactory::getLanguage()->load(
+	'lib_joomla_filesystem_patcher',
+	JPATH_BASE
+);
 
 /**
  * A Unified Diff Format Patcher class

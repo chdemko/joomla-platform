@@ -84,7 +84,7 @@ class JPatcherTest extends PHPUnit_Framework_TestCase
 		);
 		$patcher->reset();
 		$diff = file_get_contents(__DIR__ . '/patcher/notexist2tzu.diff');
-		$this->setExpectedException('Exception','JLIB_FILESYSTEM_PATCHER_UNEXISING_SOURCE');
+		$this->setExpectedException('Exception','Unexisting source file');
 		$patcher->add($diff);
 		
 	}
