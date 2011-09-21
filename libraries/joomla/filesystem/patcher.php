@@ -6,6 +6,7 @@
  * @copyright   Copyright (C) 2005 - 2011 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  *
+ * @author		legolas558
  * @note        This has been derived from the PhpPatcher version 0.1.1 done by legolas558 on http://sourceforge.net/projects/phppatcher/
  */
 
@@ -34,7 +35,6 @@ class JPatcher {
 	protected $sources = array();
 	protected $destinations = array();
 	protected $removals = array();
-	var $msg;
 	
 	/**
 	 * Constructor
@@ -47,7 +47,7 @@ class JPatcher {
 	 */
 	public function __construct($options = array())
 	{
-		$this->root = isset($options['root']) ? $options['root'] : JPATH_ROOT . '/';
+		$this->root = (isset($options['root']) ? $options['root'] : JPATH_ROOT) . '/';
 		$this->newline = isset($options['newline']) ? $options['newline'] : "\n";
 	}
 
@@ -119,11 +119,13 @@ class JPatcher {
 	
 		$line = current($lines);
 		do {
-			if (strlen($line)<5)
+			if (strlen($line)<5) {
 				continue;
+			}
 			// start recognition when a new diff block is found
-			if (substr($line, 0, 4)!='--- ')
+			if (substr($line, 0, 4)!='--- ') {
 				continue;
+			}
 			$p = strpos($line, "\t", 4);
 			if ($p===false)	{
 				$p = strlen($line);
@@ -180,7 +182,10 @@ class JPatcher {
 		//NOTE: previously opened files are still cached
 		return true;
 	}
-	
+
+	/**
+	 * Reset the pacher
+	 */	
 	public function reset()
 	{
 		$this->sources = array();
@@ -188,6 +193,9 @@ class JPatcher {
 		$this->removals = array();
 	}
 	
+	/**
+	 * Apply the patch
+	 */	
 	public function patch()
 	{
 		// Initialize the counter
@@ -221,6 +229,9 @@ class JPatcher {
 		return $done;
 	}
 	
+	/**
+	 * Apply the patch
+	 */	
 	protected function apply(&$lines, $src, $dst, $src_line, $src_size, $dst_line, $dst_size) {
 		$src_line--;
 		$dst_line--;
@@ -258,7 +269,7 @@ class JPatcher {
 				if (!isset($line{1})) {
 					$line = '';
 				}
-				else if ($line{0}=='\\') {
+				elseif ($line{0}=='\\') {
 					if ($line=='\\ No newline at end of file') {
 						continue;
 					}
@@ -277,7 +288,7 @@ class JPatcher {
 				if ($src_size>0) {
 					$src_lines =& $this->getSource($src);
 					if (!isset($src_lines)) {
-						return false;
+echo 'ici';						return false;
 					}
 				}
 				if ($dst_size>0) {
@@ -295,10 +306,14 @@ class JPatcher {
 							}
 						}
 						array_splice($dst_lines, $dst_line, count($source), $destin);
-					} else
+					}
+					else {
 						$this->destinations[$dst] = $destin;
-				} else
+					}
+				}
+				else {
 					$this->removals[] = $src;
+				}
 				
 				return true;
 			}
