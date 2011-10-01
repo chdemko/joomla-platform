@@ -683,9 +683,6 @@ class JView extends JObject
 				unset($this->this);
 			}
 
-			// Start capturing output into a buffer
-			ob_start();
-
 			// Define variable for the template
 			foreach ($_vars as $_var=>$_value)
 			{
@@ -696,6 +693,9 @@ class JView extends JObject
 			unset($_vars);
 			unset($_var);
 			unset($_value);
+
+			// Start capturing output into a buffer
+			ob_start();
 
 			// Include the requested template filename in the local scope
 			// (this will execute the view logic).
