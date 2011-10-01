@@ -613,13 +613,15 @@ class JView extends JObject
 	/**
 	 * Load a template file -- first look in the templates folder for an override
 	 *
-	 * @param   string  $tpl  The name of the template source file; automatically searches the template paths and compiles as needed.
+	 * @param   string  $tpl    The name of the template source file; automatically searches the template paths and compiles as needed.
+	 
+	 * @param	array 	$_vars  An associative array of the form 'varName'=>'value' where varName does not start by an underscore
 	 *
-	 * @return  string  The output of the the template script.
+	 * @return  string          The output of the the template script.
 	 *
 	 * @since   11.1
 	 */
-	public function loadTemplate($tpl = null, $vars=array())
+	public function loadTemplate($tpl = null, $_vars=array())
 	{
 		// clear prior output
 		$this->_output = null;
@@ -683,7 +685,7 @@ class JView extends JObject
 				unset($this->this);
 			}
 
-			// Define variable for the template
+			// Define variables for the template
 			foreach ($_vars as $_var=>$_value)
 			{
 				$$_var = $_value;
