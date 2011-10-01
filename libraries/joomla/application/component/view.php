@@ -168,6 +168,20 @@ class JView extends JObject
 			$this->_setPath('template', $this->_basePath . '/views/' . $this->getName() . '/tmpl');
 		}
 
+		// Set the default sublayout search path
+		if (array_key_exists('default_sublayout_path', $config))
+		{
+			// User-defined dirs
+			$this->_setPath('default_sublayout', $config['default_sublayout_path']);
+		}
+		else
+		{
+			$app = JFactory::getApplication();
+			$this->_setPath('default_sublayout', JPATH_BASE . '/includes/tmpl');
+			$this->_addPath('default_sublayout', $this->_basePath . '/html/tmpl');
+			$this->_addPath('default_sublayout', JPATH_THEMES . '/' . $app->getTemplate() . '/html/tmpl');
+		}
+
 		// Set the default helper search path
 		if (array_key_exists('helper_path', $config))
 		{
@@ -569,6 +583,20 @@ class JView extends JObject
 	}
 
 	/**
+	 * Adds to the stack of view script paths in LIFO order.
+	 *
+	 * @param   mixed  $path  A directory path or an array of paths.
+	 *
+	 * @return  void
+	 *
+	 * @since   11.3
+	 */
+	function addDefaultSubLayoutPath($path)
+	{
+		$this->_addPath('default_sublayout', $path);
+	}
+
+	/**
 	 * Adds to the stack of helper script paths in LIFO order.
 	 *
 	 * @param   mixed  $path  A directory path or an array of paths.
@@ -591,7 +619,7 @@ class JView extends JObject
 	 *
 	 * @since   11.1
 	 */
-	public function loadTemplate($tpl = null)
+	public function loadTemplate($tpl = null, $vars=array())
 	{
 		// clear prior output
 		$this->_output = null;
@@ -623,7 +651,7 @@ class JView extends JObject
 		jimport('joomla.filesystem.path');
 		$filetofind = $this->_createFileName('template', array('name' => $file));
 		$this->_template = JPath::find($this->_path['template'], $filetofind);
-
+		
 		// If alternate layout can't be found, fall back to default layout
 		if ($this->_template == false)
 		{
@@ -631,11 +659,23 @@ class JView extends JObject
 			$this->_template = JPath::find($this->_path['template'], $filetofind);
 		}
 
+		if ($this->_template == false)
+		{
+			//create the default template file name
+			$default = '_'.$tpl;
+
+			// clean the file name
+			$default = preg_replace('/[^A-Z0-9_\.-]/i', '', $default);
+			$filetofind	= $this->_createFileName('template', array('name' => $default));
+			$this->_template = JPath::find($this->_path['default_sublayout'], $filetofind);
+		}
+
 		if ($this->_template != false)
 		{
 			// Unset so as not to introduce into template scope
 			unset($tpl);
 			unset($file);
+			unset($default);
 
 			// Never allow a 'this' property
 			if (isset($this->this))
@@ -645,6 +685,18 @@ class JView extends JObject
 
 			// Start capturing output into a buffer
 			ob_start();
+
+			// Define variable for the template
+			foreach ($_vars as $_var=>$_value)
+			{
+				$$_var = $_value;
+			}
+
+			// Unset so as not to introduce into template scope
+			unset($_vars);
+			unset($_var);
+			unset($_value);
+
 			// Include the requested template filename in the local scope
 			// (this will execute the view logic).
 			include $this->_template;
