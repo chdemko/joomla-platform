@@ -210,9 +210,23 @@ class JUpdate extends JObject
 			// Closing update, find the latest version and check
 			case 'UPDATE':
 				$ver = new JVersion;
+				$instance = JTable::getInstance('extension');
+				if ($instance->load(array(
+					'element' => $this->_current_update->element,
+					'type' => $this->_current_update->type
+				)))
+				{
+					$manifest = json_decode($instance->manifest_file);
+					$version = empty($manifest->version) ? '' : $manifest->version;
+				}
+				else
+				{
+					$version = '';
+				}
 				$product = strtolower(JFilterInput::getInstance()->clean($ver->PRODUCT, 'cmd'));
 				if ($product == $this->_current_update->targetplatform->name
 					&& preg_match('/' . $this->_current_update->targetplatform->version . '/', $ver->RELEASE)
+					&& preg_match('/' . $$this->current_update->targetversion. '/', $version)
 				)
 				{
 					if (isset($this->_latest))
