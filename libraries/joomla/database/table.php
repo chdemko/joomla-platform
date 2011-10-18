@@ -1442,7 +1442,7 @@ abstract class JTable extends JObject
 			{
 				$k = $table['idfield'] . $i;
 
-				if ($obj->$k)
+				if ($row->$k)
 				{
 					$msg[] = JText::_($table['label']);
 				}
