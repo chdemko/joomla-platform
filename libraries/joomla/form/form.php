@@ -618,6 +618,31 @@ class JForm
 	}
 
 	/**
+	 * Check if a value exists.
+	 *
+	 * @param   string  $name     The name of the field for which to get the value.
+	 * @param   string  $group    The optional dot-separated form group path on which to get the value.
+	 *
+	 * @return  boolean  TRUE on succes, FALSE on failure.
+	 *
+	 * @since   11.4
+	 */
+	public function hasValue($name, $group = null)
+	{
+		// If a group is set use it.
+		if ($group)
+		{
+			$return = $this->data->exists($group . '.' . $name);
+		}
+		else
+		{
+			$return = $this->data->exists($name);
+		}
+
+		return $return;
+	}
+
+	/**
 	 * Method to load the form description from an XML string or object.
 	 *
 	 * The replace option works per field.  If a field being loaded already exists in the current
@@ -1645,27 +1670,56 @@ class JForm
 		}
 
 		// Get the value for the form field if not set.
-		// Default to the translated version of the 'default' attribute
-		// if 'translate_default' attribute if set to 'true' or '1'
-		// else the value of the 'default' attribute for the field.
 		if ($value === null)
 		{
-			$default = (string) $element['default'];
-			if (($translate = $element['translate_default']) && ((string) $translate == 'true' || (string) $translate == '1'))
+			// Default to the translated version of the 'preset' attribute
+			// if 'translate_preset' attribute if set to 'true' or '1'
+			// else the value of the 'preset' attribute for the field.
+			if (!$this->hasValue((string) $element['name'], $group) && isset($element['preset']))
 			{
-				$lang = JFactory::getLanguage();
-				if ($lang->hasKey($default))
+				$preset = (string) $element['preset'];
+				if (($translate = $element['translate_preset']) && ((string) $translate == 'true' || (string) $translate == '1'))
 				{
-					$debug = $lang->setDebug(false);
-					$default = JText::_($default);
-					$lang->setDebug($debug);
+					$lang = JFactory::getLanguage();
+					if ($lang->hasKey($preset))
+					{
+						$debug = $lang->setDebug(false);
+						$value = JText::_($preset);
+						$lang->setDebug($debug);
+					}
+					else
+					{
+						$value = JText::_($preset);
+					}
 				}
 				else
 				{
-					$default = JText::_($default);
+					$value = $preset;
 				}
 			}
-			$value = $this->getValue((string) $element['name'], $group, $default);
+
+			// Default to the translated version of the 'default' attribute
+			// if 'translate_default' attribute if set to 'true' or '1'
+			// else the value of the 'default' attribute for the field.
+			if (empty($value))
+			{
+				$default = (string) $element['default'];
+				if (($translate = $element['translate_default']) && ((string) $translate == 'true' || (string) $translate == '1'))
+				{
+					$lang = JFactory::getLanguage();
+					if ($lang->hasKey($default))
+					{
+						$debug = $lang->setDebug(false);
+						$default = JText::_($default);
+						$lang->setDebug($debug);
+					}
+					else
+					{
+						$default = JText::_($default);
+					}
+				}
+				$value = $this->getValue((string) $element['name'], $group, $default);
+			}
 		}
 
 		// Setup the JFormField object.
