@@ -7,6 +7,7 @@
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
+require_once JPATH_PLATFORM . '/joomla/filter/filterinput.php';
 /**
  * Test class for JForm.
  *
@@ -1368,9 +1369,48 @@ class JFormTest extends JoomlaTestCase
 		);
 
 		// Test correct usage.
+		$fields = $form->getXML()->xpath('//field[@name="title"]');
+		$this->assertThat(
+			$form->loadField($fields[0]) instanceof JFormField,
+			$this->isTrue(),
+			'Line:'.__LINE__.' Title field must be found.'
+		);
 
-		$field = $form->getField('title');
-		$field = $form->loadField($field);
+		// Test preset attribute with value equal to null
+		$fields = $form->getXML()->xpath('//field[@name="preset"]');
+		$field = $form->loadField($fields[0]);
+		$this->assertThat(
+			$field->value,
+			$this->equalTo('presetvalue'),
+			'Line:'.__LINE__.' Preset value should be used.'
+		);
+
+		// Test preset attribute with value equal to ''
+		$form->setValue('preset', null, '');
+		$field = $form->loadField($fields[0]);
+		$this->assertThat(
+			$field->value,
+			$this->equalTo(''),
+			'Line:'.__LINE__.' Preset value should not be used.'
+		);
+
+		// Test preset attribute with value equal to null and existence of 'default' attribute
+		$fields = $form->getXML()->xpath('//field[@name="presetdefault"]');
+		$field = $form->loadField($fields[0]);
+		$this->assertThat(
+			$field->value,
+			$this->equalTo('presetvalue'),
+			'Line:'.__LINE__.' Preset value should be used.'
+		);
+
+		// Test preset attribute with value equal to '' and existence of 'default' attribute
+		$form->setValue('presetdefault', null, '');
+		$field = $form->loadField($fields[0]);
+		$this->assertThat(
+			$field->value,
+			$this->equalTo('defaultvalue'),
+			'Line:'.__LINE__.' Default value should be used.'
+		);
 	}
 
 	/**

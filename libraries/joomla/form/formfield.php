@@ -369,7 +369,14 @@ abstract class JFormField
 		$this->id = $this->getId($id, $this->fieldname);
 
 		// Set the field default value.
-		$this->value = $value;
+		if ($this->multiple && is_string($value))
+		{
+			$this->value = json_decode($value, true);
+		}
+		else
+		{
+			$this->value = $value;
+		}
 
 		return true;
 	}

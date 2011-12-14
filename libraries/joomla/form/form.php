@@ -1655,7 +1655,7 @@ class JForm
 	{
 		// Make sure there is a valid JXMLElement.
 		if (!($element instanceof JXMLElement))
-		{
+		{var_dump('ici');
 			return false;
 		}
 

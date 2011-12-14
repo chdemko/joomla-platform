@@ -396,6 +396,17 @@ class JFormDataHelper
 			default="DEFAULT_KEY"
 			translate_default="true"
 			type="text"/>
+
+		<field
+			name="preset"
+			preset="presetvalue"
+			type="text"/>
+
+		<field
+			name="presetdefault"
+			preset="presetvalue"
+			default="defaultvalue"
+			type="text"/>
 	</fields>
 </form>';
 
