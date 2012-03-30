@@ -43,5 +43,8 @@
     <index name="book_isbn">
       <index-column name="isbn"/>
     </index>
+    <unique name="author">
+      <unique-column name="author_id"/>
+    </unique>
   </table>
 </database>
