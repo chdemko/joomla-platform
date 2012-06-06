@@ -155,7 +155,7 @@ class JLogLoggerFormattedtext extends JLogLogger
 		$tmp = array_change_key_case(get_object_vars($entry), CASE_UPPER);
 
 		// Decode the entry priority into an English string.
-		$entry->priority = $this->priorities[$entry->priority];
+		$tmp['PRIORITY'] = $this->priorities[$entry->priority];
 
 		// Fill in field data for the line.
 		$line = $this->format;
